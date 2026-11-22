@@ -1,0 +1,118 @@
+rules_version = '2';
+
+// ============================================================
+//  Firebase Console → Firestore Database → Rules ট্যাবে এই পুরো লেখা পেস্ট করে Publish করুন।
+//  শুধু নিচের লাইনে admin@example.com-এর জায়গায় আপনার অ্যাডমিন ইমেইল বসান
+//  (config.js-এর adminEmail-এর সাথে হুবহু এক হতে হবে, ছোট হাতের অক্ষরে)।
+// ============================================================
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'admin@example.com';
+    }
+    function exam(id) {
+      return get(/databases/$(database)/documents/exams/$(id)).data;
+    }
+    function open(id) {
+      return exam(id).status == 'published' && request.time < exam(id).endAt;
+    }
+
+    // সাইটের সেটিংস, নোটিশ, স্পনসর
+    match /site/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // পরীক্ষা: প্রকাশিতগুলো সবাই দেখতে পারে
+    match /exams/{id} {
+      allow get: if resource.data.status == 'published' || isAdmin();
+      allow list: if resource.data.status == 'published' || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // প্রশ্ন (উত্তর ছাড়া): পরীক্ষা শুরুর সময়ের আগে কেউ দেখতে পারবে না
+    match /qbank/{id} {
+      allow get: if isAdmin() || (exam(id).status == 'published' && request.time >= exam(id).startAt);
+      allow write: if isAdmin();
+    }
+
+    // সঠিক উত্তর: শুধু অ্যাডমিন
+    match /keys/{id} {
+      allow read, write: if isAdmin();
+    }
+
+    // রোল ও মোবাইল নম্বর যাতে দুইবার না নেওয়া যায়
+    match /rolls/{id} {
+      allow create: if isAdmin() || (
+        open(request.resource.data.examId)
+        && request.resource.data.keys().hasOnly(['examId', 'regId'])
+        && existsAfter(/databases/$(database)/documents/regs/$(request.resource.data.regId))
+      );
+      allow read, update, delete: if isAdmin();
+    }
+    match /phones/{id} {
+      allow create: if isAdmin() || (
+        open(request.resource.data.examId)
+        && request.resource.data.keys().hasOnly(['examId', 'regId'])
+        && existsAfter(/databases/$(database)/documents/regs/$(request.resource.data.regId))
+      );
+      allow read, update, delete: if isAdmin();
+    }
+
+    // নিবন্ধন: আইডিতে রোল ও পাসকোড থাকে, তাই আইডি না জানলে কেউ পড়তে পারে না
+    match /regs/{id} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if isAdmin() || (
+        open(request.resource.data.examId)
+        && request.resource.data.keys().hasOnly(['id', 'examId', 'roll', 'passcode', 'name', 'phone', 'email', 'district', 'institution', 'trxId', 'senderNumber', 'status', 'note', 'createdAt', 'rollKey', 'phoneKey'])
+        && request.resource.data.status == (exam(request.resource.data.examId).fee > 0 ? 'pending' : 'approved')
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.name is string && request.resource.data.name.size() <= 80
+        && request.resource.data.phone is string && request.resource.data.phone.size() <= 20
+        && existsAfter(/databases/$(database)/documents/rolls/$(request.resource.data.rollKey))
+        && existsAfter(/databases/$(database)/documents/phones/$(request.resource.data.phoneKey))
+      );
+      allow update, delete: if isAdmin();
+    }
+
+    // উত্তরপত্র
+    match /attempts/{id} {
+      allow get: if true;
+      allow list: if isAdmin();
+      allow create: if isAdmin() || (
+        id == request.resource.data.regId
+        && request.resource.data.keys().hasOnly(['id', 'examId', 'regId', 'roll', 'name', 'qids', 'optOrder', 'answers', 'submitted', 'tabSwitches', 'startedAt'])
+        && get(/databases/$(database)/documents/regs/$(request.resource.data.regId)).data.status == 'approved'
+        && get(/databases/$(database)/documents/regs/$(request.resource.data.regId)).data.examId == request.resource.data.examId
+        && exam(request.resource.data.examId).status == 'published'
+        && request.time >= exam(request.resource.data.examId).startAt
+        && request.time <= exam(request.resource.data.examId).endAt
+        && request.resource.data.startedAt == request.time
+        && request.resource.data.submitted == false
+        && request.resource.data.answers.size() == 0
+        && request.resource.data.qids.size() <= 400
+      );
+      // অংশগ্রহণকারী শুধু নিজের উত্তর বদলাতে পারে, আর সময়ের মধ্যে (৩০ সেকেন্ড বাড়তি ছাড় সহ)
+      allow update: if isAdmin() || (
+        resource.data.submitted == false
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['answers', 'tabSwitches', 'submitted', 'submittedAt'])
+        && request.time <= resource.data.startedAt + duration.value(exam(resource.data.examId).durationMin, 'm') + duration.value(30, 's')
+      );
+      allow delete: if isAdmin();
+    }
+
+    // প্রকাশিত ফলাফল ও মেধাতালিকা
+    match /results/{id} {
+      allow read: if isAdmin() || resource.data.published == true;
+      allow write: if isAdmin();
+    }
+
+    // সার্ভারের সময় জানার জন্য (ছোট নথি)
+    match /pings/{id} {
+      allow create: if request.resource.data.keys().hasOnly(['t']) && request.resource.data.t == request.time;
+      allow get: if true;
+    }
+  }
+}
