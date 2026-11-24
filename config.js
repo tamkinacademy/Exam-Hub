@@ -1,21 +1,11 @@
-/*
- * ====== এই ফাইলটিই আপনাকে একবার ঠিক করে নিতে হবে ======
- *
- * ১) adminEmail  : আপনার অ্যাডমিন ইমেইল (Firebase-এ যে ইমেইল দিয়ে ইউজার বানাবেন)
- * ২) firebase    : Firebase প্রজেক্ট সেটিংস থেকে পাওয়া কনফিগ (README-তে ধাপে ধাপে দেখানো আছে)
- *
- * firebase-এর apiKey খালি থাকলে সাইট "ডেমো মোডে" চলে:
- * ডেটা শুধু ওই ব্রাউজারে থাকে। শুধু ডিজাইন দেখা ও পরীক্ষা করার জন্য ঠিক আছে,
- * সত্যিকারের পরীক্ষার জন্য নয়। ডেমো মোডে অ্যাডমিন পাসওয়ার্ড: demo1234
- */
 window.SITE_CONFIG = {
-  adminEmail: '',
+  adminEmail: 'mdtamkenaltamver@gmail.com',
   firebase: {
-    apiKey: '',
-    authDomain: '',
-    projectId: '',
-    storageBucket: '',
-    messagingSenderId: '',
-    appId: ''
+    apiKey: 'AIzaSyB1yQw3hTAb3_4TUV3Mz6W9kSgyt5lp5oQ',
+    authDomain: 'exam-hub-7e07b.firebaseapp.com',
+    projectId: 'exam-hub-7e07b',
+    storageBucket: 'exam-hub-7e07b.firebasestorage.app',
+    messagingSenderId: '708316378650',
+    appId: '1:708316378650:web:e0e8f0f3b5e3099c5203a3'
   }
 };
