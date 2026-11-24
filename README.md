@@ -12,10 +12,10 @@
 
 1. github.com-এ নতুন রিপোজিটরি বানান (নাম যেমন `exam`)। **Public** রাখুন (ফ্রি Pages-এর জন্য)।
 2. **uploading an existing file** চেপে এই ফোল্ডারের **ভেতরের সব ফাইল ও ফোল্ডার** টেনে দিন
-   (`index.html`, `assets`, `admin`, `firestore.rules`, `README.md`, `.nojekyll`)। Commit করুন।
+   (সব ফাইল একই সারিতে, কোনো ফোল্ডার নেই)। Commit করুন।
 3. রিপোজিটরির **Settings → Pages**-এ যান। Source: **Deploy from a branch**, Branch: **main**, Folder: **/(root)** → Save।
 4. এক-দুই মিনিট পর `https://আপনার-নাম.github.io/exam/` লিংকে সাইট খুলবে।
-   অ্যাডমিন: `https://আপনার-নাম.github.io/exam/admin/`
+   অ্যাডমিন: `https://আপনার-নাম.github.io/exam/admin.html`
 
 ## ধাপ ২: Firebase (ডেটাবেস) চালু করা, একবারই লাগবে
 
@@ -27,9 +27,9 @@
    ফাইলের ভেতরে `admin@example.com` লেখাটা খুঁজে **নিজের অ্যাডমিন ইমেইল** (ছোট হাতের অক্ষরে) বসান → **Publish**।
 6. উপরে ⚙ (Project settings) → নিচে **Your apps** → `</>` (Web) আইকন → একটা নাম দিয়ে Register app।
    তখন `firebaseConfig = { apiKey: ..., ... }` দেখাবে। ওই মানগুলো কপি করুন।
-7. GitHub-এ `assets/config.js` ফাইল খুলে পেন্সিল (Edit) চেপে `adminEmail` ও `firebase`-এর মানগুলো বসিয়ে Commit করুন।
+7. GitHub-এ `config.js` ফাইল খুলে পেন্সিল (Edit) চেপে `adminEmail` ও `firebase`-এর মানগুলো বসিয়ে Commit করুন।
 8. এক মিনিট পর সাইট রিফ্রেশ করুন। উপরের লাল ডেমো বার চলে গেলে বুঝবেন Firebase যুক্ত হয়েছে।
-   `/admin/`-এ গিয়ে ধাপ ৪-এর পাসওয়ার্ড দিয়ে ঢুকুন।
+   `admin.html`-এ গিয়ে ধাপ ৪-এর পাসওয়ার্ড দিয়ে ঢুকুন।
 
 > `apiKey` গোপন জিনিস নয়, পাবলিক রিপোজিটরিতে থাকলে সমস্যা নেই। সুরক্ষা আসে `firestore.rules` থেকে।
 
